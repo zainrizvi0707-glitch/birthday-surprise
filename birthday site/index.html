@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Special Surprise | 2025</title>
+
+<!-- Libraries -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+
+:root {
+    --accent: #ff4d6d;
+    --bg-dark: #0a0a0a;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-dark);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.glass-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+}
+
+.step {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    text-align: center;
+}
+
+.step.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: all;
+}
+
+.gradient-text {
+    background: linear-gradient(45deg, #ff4d6d, #ff8fa3, #ffb3c1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: 'Playfair Display', serif;
+}
+
+#three-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.ui-layer {
+    position: relative;
+    z-index: 10;
+    height: 100vh;
+    pointer-events: none;
+}
+
+.btn-modern {
+    padding: 12px 32px;
+    border-radius: 50px;
+    background: white;
+    color: black;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    pointer-events: all;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.btn-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 30px rgba(255, 77, 109, 0.3);
+    background: var(--accent);
+    color: white;
+}
+
+#final-wish {
+    display: none;
+    font-size: 3rem;
+    line-height: 1.2;
+}
+</style>
+</head>
+<body>
+
+<canvas id="three-canvas"></canvas>
+
+<main class="ui-layer">
+    <!-- Step 1 -->
+    <div id="step1" class="step active">
+        <div class="glass-card p-8 md:p-12">
+            <p class="text-sm uppercase tracking-widest text-gray-400 mb-4">January 15, 2025</p>
+            <h1 class="text-4xl md:text-5xl font-bold mb-6 gradient-text italic">Hello, Cutie.</h1>
+            <p class="text-gray-300 mb-8 leading-relaxed">I wanted to create something as unique and beautiful as you are. Are you ready for a little journey?</p>
+            <button onclick="startMusic(); nextStep(2)" class="btn-modern">Start Here →</button>
+        </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div id="step2" class="step">
+        <div class="glass-card p-8 md:p-12">
+            <h2 class="text-3xl font-bold mb-6">The World is Brighter...</h2>
+            <p class="text-gray-300 mb-8 leading-relaxed">Ever since you've been a part of my life, everything seems to have a bit more color, more meaning, and a lot more laughter.</p>
+            <button onclick="nextStep(3)" class="btn-modern">Continue</button>
+        </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div id="step3" class="step">
+        <div class="glass-card p-8 md:p-12">
+            <h2 class="text-3xl font-bold mb-6">A Rare Kind of Soul</h2>
+            <p class="text-gray-300 mb-8 leading-relaxed">It's not just today that's special. It's the way you make every other day feel like a celebration just by being yourself.</p>
+            <button onclick="nextStep(4)" class="btn-modern">One Last Thing...</button>
+        </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div id="step4" class="step">
+        <div class="glass-card p-8 md:p-12">
+            <h2 class="text-3xl font-bold mb-6">Today is Yours.</h2>
+            <p class="text-gray-300 mb-8 leading-relaxed">I hope your day is filled with the same joy you give to everyone around you. Click below to see how I feel.</p>
+            <img src="friend.jpeg" alt="Cutie"
+                 style="width:180px; border-radius:20px; margin:20px auto; box-shadow:0 10px 30px rgba(255,77,109,0.4);">
+            <button id="celebrateBtn" onclick="celebrate()" class="btn-modern bg-red-500 text-white border-none scale-110">CELEBRATE! ✨</button>
+            <div id="final-wish" class="mt-8 gradient-text font-bold">
+                Happy Birthday,<br>My Special One!
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Audio -->
+<audio id="bg-music" loop>
+    <source src="birthday.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+// Music
+const music = document.getElementById("bg-music");
+function startMusic() {
+    if (music) {
+        music.volume = 0.6;
+        music.play().catch(()=>{ console.log("Music blocked by browser, needs user click") });
+    }
+}
+
+// THREE.js Setup
+const canvas = document.querySelector('#three-canvas');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+// Hearts
+const heartShape = new THREE.Shape();
+heartShape.moveTo(5,5);
+heartShape.bezierCurveTo(5,5,4,0,0,0);
+heartShape.bezierCurveTo(-6,0,-6,7,-6,7);
+heartShape.bezierCurveTo(-6,11,-3,15.4,5,19);
+heartShape.bezierCurveTo(12,15.4,16,11,16,7);
+heartShape.bezierCurveTo(16,7,16,0,10,0);
+heartShape.bezierCurveTo(7,0,5,5,5,5);
+
+const geometry = new THREE.ExtrudeGeometry(heartShape, { depth:2, bevelEnabled:true, bevelThickness:1, bevelSize:1 });
+const hearts = [];
+const heartCount = 20;
+
+for(let i=0;i<heartCount;i++){
+    const material = new THREE.MeshPhongMaterial({
+        color: i%2===0?0xff4d6d:0xff8fa3,
+        shininess:100
+    });
+    const heart = new THREE.Mesh(geometry, material);
+    heart.position.set((Math.random()-0.5)*100,(Math.random()-0.5)*100,(Math.random()-0.5)*50-50);
+    heart.rotation.x = Math.PI;
+    heart.rotation.z = Math.random()*Math.PI;
+    heart.scale.set(0.2,0.2,0.2);
+    scene.add(heart);
+    hearts.push({mesh:heart, speed:0.01+Math.random()*0.02, rotSpeed:0.005+Math.random()*0.01});
+}
+
+const light = new THREE.DirectionalLight(0xffffff,1);
+light.position.set(0,0,10);
+scene.add(light);
+scene.add(new THREE.AmbientLight(0xffffff,0.5));
+camera.position.z = 30;
+
+function animate(){
+    requestAnimationFrame(animate);
+    hearts.forEach(h=>{
+        h.mesh.rotation.y += h.rotSpeed;
+        h.mesh.position.y += Math.sin(Date.now()*0.001+h.mesh.position.x)*0.02;
+    });
+    renderer.render(scene,camera);
+}
+animate();
+
+window.addEventListener('resize',()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// GSAP Navigation
+function nextStep(stepNum){
+    const currentStep = document.querySelector('.step.active');
+    const nextStep = document.getElementById(`step${stepNum}`);
+    gsap.to(currentStep,{duration:0.6, opacity:0, scale:0.8, ease:"power2.inOut", onComplete:()=>{
+        currentStep.classList.remove('active');
+        nextStep.classList.add('active');
+        gsap.fromTo(nextStep,{opacity:0, scale:1.2},{duration:0.8, opacity:1, scale:1, ease:"back.out(1.7)"});
+    }});
+}
+
+// Celebrate Function
+function celebrate(){
+    const btn = document.getElementById('celebrateBtn');
+    const wish = document.getElementById('final-wish');
+    btn.disabled=true;
+    gsap.to(btn,{duration:0.5, opacity:0, y:-20, display:'none'});
+    wish.style.display='block';
+    gsap.fromTo(wish,{opacity:0,y:50},{duration:1.5, opacity:1, y:0, ease:"elastic.out(1,0.5)"});
+
+    hearts.forEach((h,i)=>{
+        gsap.to(h.mesh.position,{
+            duration:3,
+            x:(Math.random()-0.5)*200,
+            y:100,
+            z:-100,
+            ease:"power2.in",
+            delay:i*0.05
+        });
+        gsap.to(h.mesh.material,{duration:2, opacity:0, transparent:true, delay:1});
+    });
+
+    const duration=5000;
+    const animationEnd=Date.now()+duration;
+    const defaults={startVelocity:30, spread:360, ticks:60, zIndex:0};
+
+    function randomInRange(min,max){return Math.random()*(max-min)+min;}
+
+    const interval = setInterval(()=>{
+        const timeLeft = animationEnd-Date.now();
+        if(timeLeft<=0) return clearInterval(interval);
+        const particleCount = 50*(timeLeft/duration);
+        confetti({...defaults, particleCount, origin:{x:randomInRange(0.1,0.3), y:Math.random()-0.2}});
+        confetti({...defaults, particleCount, origin:{x:randomInRange(0.7,0.9), y:Math.random()-0.2}});
+    },250);
+}
+</script>
+
+</body>
+</html>
